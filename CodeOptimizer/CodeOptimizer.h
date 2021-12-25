@@ -11,6 +11,12 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <iostream>
+#include <tuple>
+
+using std::tuple;
+using std::string;
+using std::cout;
 
 #include <cpprest/http_client.h>
 #include <cpprest/filestream.h>
@@ -53,6 +59,7 @@ private:
     void handle_put(http_request message);
     void handle_post(http_request message);
     void handle_delete(http_request message);
+    void handle_options(http_request message);
     void handle_error(pplx::task<void>& t);
     http_listener m_listener;
 };

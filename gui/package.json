@@ -9,12 +9,14 @@
   },
   "dependencies": {
     "@vue2vis/network": "^1.0.1-alpha.78",
+    "axios": "^0.24.0",
     "core-js": "^3.6.5",
     "element-ui": "^2.15.6",
     "mavon-editor": "^2.10.4",
     "moment": "^2.29.1",
     "vis-data": "^6.6.1",
     "vue": "^2.6.11",
+    "vue-router": "^3.5.3",
     "vue2vis": "^0.0.18"
   },
   "devDependencies": {

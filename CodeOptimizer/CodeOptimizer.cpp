@@ -11,7 +11,7 @@ handler::handler(utility::string_t url) :m_listener(url)
     m_listener.support(methods::PUT, std::bind(&handler::handle_put, this, std::placeholders::_1));
     m_listener.support(methods::POST, std::bind(&handler::handle_post, this, std::placeholders::_1));
     m_listener.support(methods::DEL, std::bind(&handler::handle_delete, this, std::placeholders::_1));
-
+    m_listener.support(methods::OPTIONS, std::bind(&handler::handle_options, this, std::placeholders::_1));
 }
 handler::~handler()
 {
@@ -30,6 +30,17 @@ void handler::handle_error(pplx::task<void>& t)
     }
 }
 
+void handler::handle_options(http_request message)
+{
+    http_response rep;
+    rep.headers().add(U("Access-Control-Allow-Origin"), U("*"));
+    rep.headers().add(U("Access-Control-Request-Method"), U("GET,POST,OPTIONS"));
+    rep.headers().add(U("Access-Control-Allow-Credentials"), U("true"));
+    rep.headers().add(U("Access-Control-Allow-Headers"), U("Content-Type,Access-Token,x-requested-with,Authorization"));
+    rep.set_status_code(status_codes::OK);
+    message.reply(rep);
+}
+
 
 //
 // Get Request 
@@ -46,7 +57,20 @@ void handler::handle_get(http_request message)
 
     ucout << str << endl;
 
-    message.reply(status_codes::OK, str);
+    http_response rep;
+    rep.headers().add(U("Access-Control-Allow-Origin"), message.headers().operator[](U("Origin")));
+    rep.headers().add(U("Access-Control-Request-Method"), U("GET,POST,OPTIONS"));
+    rep.headers().add(U("Access-Control-Allow-Credentials"), U("true"));
+    rep.headers().add(U("Access-Control-Allow-Headers"), U("Content-Type,Access-Token,x-requested-with,Authorization"));
+    rep.set_body(str);
+    rep.set_status_code(status_codes::OK);
+    message.reply(rep);
+
+    auto st = U("code");
+    string stdstring = st;
+
+
+
 
     //concurrency::streams::fstream::open_istream(U("static/index.html"), std::ios::in).then([=](concurrency::streams::istream is)
     //{

@@ -1,15 +1,19 @@
 <template>
-    <div id="app">
-        <el-row :gutter="20">
+  <div id="main">
+      <el-row :gutter="20">
             <el-col :span="12">
                 <el-card class="box-card">
+                    <el-button-group>
+                        <el-button type="primary" @click.native="fetchCodeGraph" round>加载程序流图</el-button>
+                    </el-button-group>
+                </el-card>
+
+                <el-card class="box-card">
                     <div slot="header" class="clearfix">
-                        <span>节点图</span>
+                        <span>程序流图</span>
                     </div>
                     <network style="height:500px" ref="network" :nodes="nodes" :edges="edges" :options="options"></network>
                 </el-card>
-
-                    
             </el-col>
             <el-col :span="12">
                 <el-card class="box-card">
@@ -17,49 +21,72 @@
                         <span>代码编辑器</span>
                     </div>
                     <div id="main">
-                    <mavon-editor style="height:500px" v-model="value" :ishljs="true"></mavon-editor>
+                        <mavon-editor style="height:500px" v-model="value"></mavon-editor>
                     </div>
                 </el-card>
-
-                
-
-                
             </el-col>
         </el-row>
-        <el-row :gutter="20">
-            <el-col :span="10">
-                
-            </el-col>
-            <el-col :span="10">
-                
-            </el-col>
 
-        </el-row>
-    </div>
+    
+    
+
+  </div>
 </template>
 
 <script>
-import Vue from 'vue'
 import { Network } from "@vue2vis/network";
 import "vis-network/styles/vis-network.css";
-import mavonEditor from 'mavon-editor';
+
+import { mavonEditor } from 'mavon-editor'
 import 'mavon-editor/dist/css/index.css'
 
-Vue.use(mavonEditor)
+import {InitWithCode} from "@/api/code.js";
+
+
+var testCode="\
+SUB     I   M   1\n\
+SET     J   N   -\n\
+MUL     T1  4   N\n\
+FAR     V   A   T1\n\
+ADD     I   I   1\n\
+MUL     T2  4   I\n\
+FAR     T3  A   T2\n\
+JLT     (5)  T3  V\n\
+SUB     J   J   1\n\
+MUL     T4  4   J\n\
+FAR     T5  A   T4\n\
+JGT     (9)  T5  V\n\
+JGE     (23)  I   J\n\
+MUL     T6  4   I\n\
+FAR     X   A   T6\n\
+MUL     T7  4   I\n\
+MUL     T8  4   J\n\
+FAR     T9  A   T8\n\
+TAR     A   T7  T9\n\
+MUL     T10 4   J\n\
+TAR     A   T10 X\n\
+JMP     (5)  -   -\n\
+MUL     T11 4   I\n\
+FAR     X   A   T11\n\
+MUL     T12 4   I\n\
+MUL     T13 4   N\n\
+FAR     T14 A   T13\n\
+TAR     A   T12 T14\n\
+MUL     T15 4   N\n\
+TAR     A   T15 X"
 
 export default {
-    name: 'App',
-    components: {
-        Network
+    components: { Network,mavonEditor},
+    props:{
+        
     },
     data() { 
         return { 
             nodes: [ 
-                { id: 1, label: "Node 1" },
-                { id: 2, label: "Node 2"},
-                { id: 3, label: "Node 3" } 
-                ], 
-                
+                    { id: 1, label: "Node 1" },
+                    { id: 2, label: "Node 2"},
+                    { id: 3, label: "Node 3" } 
+                    ], 
             edges: [ 
                 { id: 1, from: 1, to: 3 }, 
                 { id: 2,from: 1, to: 2 } 
@@ -68,7 +95,7 @@ export default {
             { 
                 nodes: { shape: "circle" } 
             },
-            value:"```cpp\n#include<iostream>\nusing namespace std;\nint main(){\nreturn 0;\n}\n```",
+            value:"```verilog\n"+testCode+"\n```",
             toolbars: {
                 bold: true, // 粗体
                 italic: true, // 斜体
@@ -104,12 +131,35 @@ export default {
                 subfield: true, // 单双栏模式
                 preview: true, // 预览
             }
-        }; 
-    }
+        }
+    },
+    created:function(){
 
-}
+    },
+    methods:{
+        fetchCodeGraph()
+        {
+            InitWithCode().then(response=>{
+                this.nodes=[
+                { id: 1, label: "T1" },
+                 { id: 2, label: "T2"}
+                ];
+                this.edges=[
+                    { id: 1,from: 1, to: 2 }
+                ];
+                console.log(response);
+
+            }).catch(error=>{
+                console.log(error);
+            })
+            
+        }
+
+    }
+};
 </script>
 
-<style>
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
 
 </style>
