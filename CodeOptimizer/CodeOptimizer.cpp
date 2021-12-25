@@ -126,16 +126,10 @@ inline std::string WStringToString(const std::wstring& input)
 
 json::value handleInitWithCode(json::value codes)
 {
-
-    ucout << codes.to_string() << std::endl;
-
-
     auto code = codes.operator[](U("codes")).as_string();
 
-    ucout << code << std::endl;
     string process = WStringToString(code);
 
-    std::cout << process << std::endl;
     auto [vecnodes, vecedges,value] = IntermediateCode::getInstance()->initWithCode(process);
 
     json::value ret= json::value::object();
@@ -163,7 +157,88 @@ json::value handleInitWithCode(json::value codes)
     ret.operator[](U("edges")) = edges;
     ret.operator[](U("value")) = json::value::value(StringToWString(value));
 
-    ucout << ret.to_string() << std::endl;
+    return ret;
+}
+
+
+json::value handleReadLine(json::value jsonCode)
+{
+    auto code = jsonCode.operator[](U("code")).as_string();
+
+    string process = WStringToString(code);
+
+    auto [vecnodes, vecedges] = IntermediateCode::getInstance()->establishDAG(process);
+
+    json::value ret = json::value::object();
+    json::value nodes = json::value::array();
+    json::value edges = json::value::array();
+
+    for (size_t i = 0; i < vecnodes.size(); i++)
+    {
+        json::value node = json::value::object();
+        node.operator[](U("id")) = json::value::value(vecnodes[i].id);
+        node.operator[](U("label")) = json::value::value(StringToWString(vecnodes[i].label));
+        node.operator[](U("group")) = json::value::value(vecnodes[i].group);
+        nodes[i] = node;
+    }
+    for (size_t i = 0; i < vecedges.size(); i++)
+    {
+        json::value edge = json::value::object();
+        edge.operator[](U("id")) = json::value::value(vecedges[i].id);
+        edge.operator[](U("from")) = json::value::value(vecedges[i].from);
+        edge.operator[](U("to")) = json::value::value(vecedges[i].to);
+        edge.operator[](U("group")) = json::value::value(vecedges[i].group);
+        edges[i] = edge;
+    }
+    ret.operator[](U("nodes")) = nodes;
+    ret.operator[](U("edges")) = edges;
+
+    return ret;
+}
+
+
+void handleRecordActive(json::value jsonCode)
+{
+    auto actives = jsonCode.operator[](U("actives")).as_array();
+
+    vector<string>vecactives;
+
+    for (auto active : actives)
+    {
+        vecactives.push_back(WStringToString(active.as_string()));
+    }
+    
+    IntermediateCode::getInstance()->recordActive(vecactives);
+}
+
+json::value handleSimplify()
+{
+    auto [vecnodes, vecedges] = IntermediateCode::getInstance()->simplifyDAG();
+
+    json::value ret = json::value::object();
+    json::value nodes = json::value::array();
+    json::value edges = json::value::array();
+
+    for (size_t i = 0; i < vecnodes.size(); i++)
+    {
+        json::value node = json::value::object();
+        node.operator[](U("id")) = json::value::value(vecnodes[i].id);
+        node.operator[](U("label")) = json::value::value(StringToWString(vecnodes[i].label));
+        node.operator[](U("group")) = json::value::value(vecnodes[i].group);
+        nodes[i] = node;
+    }
+    for (size_t i = 0; i < vecedges.size(); i++)
+    {
+        json::value edge = json::value::object();
+        edge.operator[](U("id")) = json::value::value(vecedges[i].id);
+        edge.operator[](U("from")) = json::value::value(vecedges[i].from);
+        edge.operator[](U("to")) = json::value::value(vecedges[i].to);
+        edge.operator[](U("group")) = json::value::value(vecedges[i].group);
+        edges[i] = edge;
+    }
+    ret.operator[](U("nodes")) = nodes;
+    ret.operator[](U("edges")) = edges;
+
     return ret;
 }
 
@@ -173,20 +248,9 @@ json::value handleInitWithCode(json::value codes)
 //
 void handler::handle_get(http_request message)
 {
-    auto data = message.extract_json().get();
-    auto paths = http::uri::split_path(http::uri::decode(message.relative_uri().path()));
-    auto operation = *paths.rbegin();
-
-    ucout << message.to_string() << std::endl;
-
-    json::value ret;
-    if (operation == utility::string_t(U("init")))
-    {
-        ret = handleInitWithCode(data);
-    }
-
     http_response rep;
-    rep.set_body(ret);
+    json::value json;
+    rep.set_body(json);
     rep.headers().add(U("Access-Control-Allow-Origin"), message.headers().operator[](U("Origin")));
     rep.headers().add(U("Access-Control-Request-Method"), U("GET,POST,OPTIONS"));
     rep.headers().add(U("Access-Control-Allow-Credentials"), U("true"));
@@ -195,6 +259,7 @@ void handler::handle_get(http_request message)
     message.reply(rep);
     return;
 };
+
 
 //
 // A POST request
@@ -212,7 +277,18 @@ void handler::handle_post(http_request message)
     {
         ret = handleInitWithCode(data);
     }
-
+    if (operation == utility::string_t(U("readLine")))
+    {
+        ret = handleReadLine(data);
+    }
+    if (operation == utility::string_t(U("recordActive")))
+    {
+        handleRecordActive(data);
+    }
+    if (operation == utility::string_t(U("simplify")))
+    {
+        ret = handleSimplify();
+    }
 
     http_response rep;
     rep.set_body(ret);
