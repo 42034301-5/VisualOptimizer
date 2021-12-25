@@ -5,10 +5,12 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("CodeOptimizer")
 
+set(CMAKE_CXX_STANDARD 17)
+
 find_package(cpprestsdk REQUIRED)
 
 # 将源代码添加到此项目的可执行文件。
-add_executable (CodeOptimizer "CodeOptimizer.cpp" "CodeOptimizer.h" "main.cpp")
+add_executable (CodeOptimizer "CodeOptimizer.cpp" "CodeOptimizer.h" "main.cpp" "global.hpp")
 
 # TODO: 如有需要，请添加测试并安装目标。
 
