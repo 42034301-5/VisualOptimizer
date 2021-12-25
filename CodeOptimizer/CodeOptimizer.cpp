@@ -1,6 +1,7 @@
 ﻿
 #include "CodeOptimizer.h"
 #include "global.hpp"
+#include "Intermediate.hpp"
 
 handler::handler()
 {
@@ -56,71 +57,71 @@ inline std::string WStringToString(const std::wstring& input)
 
 
 
-
-
-tuple<vector<ForeEndNode>, vector<ForeEndEdge>,string> initWithCode(const string& codes)
-{
-    vector<ForeEndNode> nodes;
-    vector<ForeEndEdge> edges;
-
-    nodes.push_back({ 1ull,"Code1\nemmm\nhhhhhhh\nwhat\nactive: a b c",0ull });
-    nodes.push_back({ 2ull ,"Code2\nemmm\nhhhhhhh\nwhat\nactive: a b c",1ull });
-    nodes.push_back({ 3ull,"Code3\nemmm\nhhhhhhh\nwhat\nactive: a b c",0ull });
-    nodes.push_back({ 4ull,"Code4\nemmm\nhhhhhhh\nwhat\nactive: a b c",1ull });
-    nodes.push_back({ 5ull,"Code5\nemmm\nhhhhhhh\nwhat\nactive: a b c",2ull });
-
-    edges.push_back({1ull,1ull,2ull,0ull});
-    edges.push_back({ 2ull,2ull,3ull,0ull });
-    edges.push_back({ 3ull,1ull,3ull,1ull });
-    edges.push_back({ 4ull,3ull,4ull,2ull, });
-    edges.push_back({ 5ull,4ull,1ull,1ull });
-    edges.push_back({ 6ull,4ull,5ull,3ull });
-    return std::make_tuple(nodes,edges,string("empty"));
-}
-
-void recordActivate(const vector<string>&active)
-{
-
-}
-
-
-tuple<vector<ForeEndNode>, vector<ForeEndEdge>> establishDAG(const string& code)
-{
-    vector<ForeEndNode> nodes;
-    vector<ForeEndEdge> edges;
-
-    nodes.push_back({ 1ull,"Code1",0ull });
-    nodes.push_back({ 2ull ,"Code2",1ull });
-    nodes.push_back({ 3ull,"Code3",0ull });
-    nodes.push_back({ 4ull,"Code4",1ull });
-    nodes.push_back({ 5ull,"Code5",2ull });
-
-    edges.push_back({ 1ull,1ull,2ull,0ull });
-    edges.push_back({ 2ull,2ull,3ull,0ull });
-    edges.push_back({ 3ull,1ull,3ull,1ull });
-    edges.push_back({ 4ull,3ull,4ull,2ull, });
-    edges.push_back({ 5ull,4ull,1ull,1ull });
-
-    return std::make_tuple(nodes, edges);
-}
-
-tuple<vector<ForeEndNode>, vector<ForeEndEdge>> simplifyDAG()
-{
-    vector<ForeEndNode> nodes;
-    vector<ForeEndEdge> edges;
-
-    nodes.push_back({ 1ull,"T1",0ull });
-    nodes.push_back({ 2ull ,"T2",1ull });
-    nodes.push_back({ 3ull,"T3",0ull });
-    nodes.push_back({ 4ull,"T4",1ull });
-
-    edges.push_back({ 1ull,1ull,2ull,0ull });
-    edges.push_back({ 2ull,2ull,3ull,0ull });
-    edges.push_back({ 3ull,1ull,3ull,1ull });
-    edges.push_back({ 4ull,3ull,4ull,2ull, });
-
-    return std::make_tuple(nodes, edges);
-}
+//
+//
+//tuple<vector<ForeEndNode>, vector<ForeEndEdge>,string> initWithCode(const string& codes)
+//{
+//    vector<ForeEndNode> nodes;
+//    vector<ForeEndEdge> edges;
+//
+//    nodes.push_back({ 1ull,"Code1\nemmm\nhhhhhhh\nwhat\nactive: a b c",0ull });
+//    nodes.push_back({ 2ull ,"Code2\nemmm\nhhhhhhh\nwhat\nactive: a b c",1ull });
+//    nodes.push_back({ 3ull,"Code3\nemmm\nhhhhhhh\nwhat\nactive: a b c",0ull });
+//    nodes.push_back({ 4ull,"Code4\nemmm\nhhhhhhh\nwhat\nactive: a b c",1ull });
+//    nodes.push_back({ 5ull,"Code5\nemmm\nhhhhhhh\nwhat\nactive: a b c",2ull });
+//
+//    edges.push_back({1ull,1ull,2ull,0ull});
+//    edges.push_back({ 2ull,2ull,3ull,0ull });
+//    edges.push_back({ 3ull,1ull,3ull,1ull });
+//    edges.push_back({ 4ull,3ull,4ull,2ull, });
+//    edges.push_back({ 5ull,4ull,1ull,1ull });
+//    edges.push_back({ 6ull,4ull,5ull,3ull });
+//    return std::make_tuple(nodes,edges,string("empty"));
+//}
+//
+//void recordActivate(const vector<string>&active)
+//{
+//
+//}
+//
+//
+//tuple<vector<ForeEndNode>, vector<ForeEndEdge>> establishDAG(const string& code)
+//{
+//    vector<ForeEndNode> nodes;
+//    vector<ForeEndEdge> edges;
+//
+//    nodes.push_back({ 1ull,"Code1",0ull });
+//    nodes.push_back({ 2ull ,"Code2",1ull });
+//    nodes.push_back({ 3ull,"Code3",0ull });
+//    nodes.push_back({ 4ull,"Code4",1ull });
+//    nodes.push_back({ 5ull,"Code5",2ull });
+//
+//    edges.push_back({ 1ull,1ull,2ull,0ull });
+//    edges.push_back({ 2ull,2ull,3ull,0ull });
+//    edges.push_back({ 3ull,1ull,3ull,1ull });
+//    edges.push_back({ 4ull,3ull,4ull,2ull, });
+//    edges.push_back({ 5ull,4ull,1ull,1ull });
+//
+//    return std::make_tuple(nodes, edges);
+//}
+//
+//tuple<vector<ForeEndNode>, vector<ForeEndEdge>> simplifyDAG()
+//{
+//    vector<ForeEndNode> nodes;
+//    vector<ForeEndEdge> edges;
+//
+//    nodes.push_back({ 1ull,"T1",0ull });
+//    nodes.push_back({ 2ull ,"T2",1ull });
+//    nodes.push_back({ 3ull,"T3",0ull });
+//    nodes.push_back({ 4ull,"T4",1ull });
+//
+//    edges.push_back({ 1ull,1ull,2ull,0ull });
+//    edges.push_back({ 2ull,2ull,3ull,0ull });
+//    edges.push_back({ 3ull,1ull,3ull,1ull });
+//    edges.push_back({ 4ull,3ull,4ull,2ull, });
+//
+//    return std::make_tuple(nodes, edges);
+//}
 
 
 json::value handleInitWithCode(json::value codes)
@@ -135,7 +136,7 @@ json::value handleInitWithCode(json::value codes)
     string process = WStringToString(code);
 
     std::cout << process << std::endl;
-    auto [vecnodes, vecedges,value] = initWithCode(process);
+    auto [vecnodes, vecedges,value] = IntermediateCode::getInstance()->initWithCode(process);
 
     json::value ret= json::value::object();
     json::value nodes = json::value::array();
