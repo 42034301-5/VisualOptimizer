@@ -520,6 +520,11 @@ public:
             {
                 os << IC->interCode[j];
             }
+            os << "Active:";
+            for(auto&& activeVar : IC->blocks[i].ouActive)
+            {
+                os << " " << activeVar;
+            }
 
             n.label = os.str();
             foreNodes.emplace_back(n);
