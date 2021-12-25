@@ -47,6 +47,7 @@ private:
     static IntermediateCode* IC;
     DAG externalDAG;
     std::vector<std::string> externalActive;
+    static size_t edgeSerial;
 
     int findLabel(const std::string& target)
     {
@@ -509,8 +510,6 @@ public:
         std::vector<ForeEndEdge> foreEdges;
         std::ostringstream optimizedCode;
 
-        size_t edgeSerial = 0;
-
         for(size_t i = 0; i < IC->blocks.size(); ++i)
         {
             // 添加前端结点
@@ -585,7 +584,6 @@ public:
 
         std::vector<ForeEndNode> foreNodes;
         std::vector<ForeEndEdge> foreEdges;
-        size_t edgeSerial = 0;
 
         for(size_t i = 0; i < IC->externalDAG.nodes.size(); ++i)
         {
@@ -689,7 +687,7 @@ public:
 
         std::vector<ForeEndNode> foreNodes;
         std::vector<ForeEndEdge> foreEdges;
-        size_t edgeSerial = 0;
+
         for(size_t i = 0; i < IC->externalDAG.nodes.size(); ++i)
         {
             // 处理前端DAG结点
@@ -734,11 +732,12 @@ public:
 
         IC->externalActive.clear();
         IC->externalDAG.release();
-
+        IntermediateCode::edgeSerial = 0;
         return res;
     }
 };
 
 IntermediateCode* IntermediateCode::IC = new IntermediateCode{};
+size_t IntermediateCode::edgeSerial = 0;
 
 #endif
