@@ -612,18 +612,22 @@ public:
 
             // 处理前端DAG边
             ForeEndEdge fe;
+            size_t edgeSerial = 0;
             if(curNode->left != -1)
             {
+                fe.id = edgeSerial++;
                 fe.from = i, fe.to = curNode->left;
                 foreEdges.emplace_back(fe);
             }
             if(curNode->right != -1)
             {
+                fe.id = edgeSerial++;
                 fe.from = i, fe.to = curNode->right;
                 foreEdges.emplace_back(fe);
             }
             if(curNode->tri != -1)
             {
+                fe.id = edgeSerial++;
                 fe.from = i, fe.to = curNode->tri;
                 foreEdges.emplace_back(fe);
             }
@@ -700,18 +704,22 @@ public:
 
             // 处理前端DAG边
             ForeEndEdge fe;
+            size_t edgeSerial = 0;
             if(curNode->left != -1)
             {
+                fe.id = edgeSerial++;
                 fe.from = i, fe.to = curNode->left;
                 foreEdges.emplace_back(fe);
             }
             if(curNode->right != -1)
             {
+                fe.id = edgeSerial++;
                 fe.from = i, fe.to = curNode->right;
                 foreEdges.emplace_back(fe);
             }
             if(curNode->tri != -1)
             {
+                fe.id = edgeSerial++;
                 fe.from = i, fe.to = curNode->tri;
                 foreEdges.emplace_back(fe);
             }

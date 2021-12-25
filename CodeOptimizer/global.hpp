@@ -26,6 +26,11 @@ struct QuadExp
             return 1;
         return 2;
     }
+
+    std::string toString()
+    {
+        return (op + "\t" + a1 + "\t" + a2 + "\t" + a3 + "\t");
+    }
 };
 
 std::istream& operator>>(std::istream& in, QuadExp& E)
