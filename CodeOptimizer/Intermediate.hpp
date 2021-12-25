@@ -494,6 +494,9 @@ public:
     static std::tuple<std::vector<ForeEndNode>, std::vector<ForeEndEdge>, std::string>
     initWithCode(const std::string& code)
     {
+        IC->blocks.clear();
+        IC->interCode.clear();
+        IC->loops.clear();
         std::istringstream is(code);
 
         while(is.peek() != EOF)
