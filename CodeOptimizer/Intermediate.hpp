@@ -132,17 +132,6 @@ private:
 
             }
 
-            std::cout << "Block" << i << "'s def: ";
-            for(size_t j = 0; j < def.size(); ++j)
-            {
-                std::cout << def[j] << ' ';
-            }
-            std::cout << std::endl << "Block" << i << "'s use:";
-            for(size_t j = 0; j < use.size(); ++j)
-            {
-                std::cout << use[j] << ' ';
-            }
-            std::cout << std::endl;
         }
     }
 
@@ -196,14 +185,6 @@ private:
             }
         }
 
-        for(size_t i = 0; i < size; ++i)
-        {
-            std::cout << "Block" << i << "'s outActive: ";
-            for(auto&& var : blocks[i].ouActive)
-                std::cout << var << ' ';
-            std::cout << '\n';
-        }
-
     }
 
     int findBlockByCode(size_t begin_)
@@ -253,12 +234,6 @@ private:
             }
         }
 
-        std::cout << "Back Edges: " << std::endl;
-        for(auto&& back : backEdges)
-        {
-            std::cout << back.first << ", " << back.second << std::endl;
-        }
-
         for(size_t i = 0; i < backEdges.size(); ++i)    
         {
             std::vector<size_t> L; 
@@ -298,13 +273,6 @@ private:
             loops.emplace_back(L);
 
             
-        }
-        for(auto&& l : loops)
-        {
-            std::cout << "loop:";
-            for(auto&& i : l)
-                std::cout << i << ' ';
-            std::cout << "\n";
         }
     }
 
@@ -355,6 +323,10 @@ public:
     {
         if(IC != nullptr)
         {
+            for(auto&& blk : IC->blocks)
+            {
+                blk.dag.release();
+            }
             delete IC;
             IC = nullptr;
         }
