@@ -509,6 +509,8 @@ public:
         std::vector<ForeEndEdge> foreEdges;
         std::ostringstream optimizedCode;
 
+        size_t edgeSerial = 0;
+
         for(size_t i = 0; i < IC->blocks.size(); ++i)
         {
             // 添加前端结点
@@ -531,14 +533,17 @@ public:
 
             // 添加前端边
             ForeEndEdge e;
+            
             if(IC->blocks[i].nextCode != -1)
             {
+                e.id = edgeSerial++;
                 e.from = i, e.to = IC->findBlockByCode(IC->blocks[i].nextCode);
                 foreEdges.emplace_back(e);
                 
             }
             if(IC->blocks[i].jumpCode != -1)
             {
+                e.id = edgeSerial++;
                 e.from = i, e.to = IC->findBlockByCode(IC->blocks[i].jumpCode);
                 foreEdges.emplace_back(e);
             }
@@ -580,6 +585,7 @@ public:
 
         std::vector<ForeEndNode> foreNodes;
         std::vector<ForeEndEdge> foreEdges;
+        size_t edgeSerial = 0;
 
         for(size_t i = 0; i < IC->externalDAG.nodes.size(); ++i)
         {
@@ -612,7 +618,7 @@ public:
 
             // 处理前端DAG边
             ForeEndEdge fe;
-            size_t edgeSerial = 0;
+            
             if(curNode->left != -1)
             {
                 fe.id = edgeSerial++;
@@ -683,7 +689,7 @@ public:
 
         std::vector<ForeEndNode> foreNodes;
         std::vector<ForeEndEdge> foreEdges;
-
+        size_t edgeSerial = 0;
         for(size_t i = 0; i < IC->externalDAG.nodes.size(); ++i)
         {
             // 处理前端DAG结点
@@ -704,7 +710,7 @@ public:
 
             // 处理前端DAG边
             ForeEndEdge fe;
-            size_t edgeSerial = 0;
+            
             if(curNode->left != -1)
             {
                 fe.id = edgeSerial++;
