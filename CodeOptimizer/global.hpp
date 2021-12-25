@@ -99,10 +99,20 @@ T difference(const T& A, const T& B)
     return result;
 }
 
+enum
+{
+    NORMAL  = 0,
+    NEW     = 1,
+    KILLED  = 2,
+    LEAF    = 3,
+    ACTIVE  = 4
+};
+
 struct ForeEndNode
 {
     size_t id{};
     std::string label;
+    size_t group = NORMAL;
 
 };
 
@@ -110,6 +120,7 @@ struct ForeEndEdge
 {
     size_t id{};
     size_t from{}, to{};
+    size_t group = NORMAL;
 };
 
 #endif

@@ -42,8 +42,11 @@ private:
     std::vector<QuadExp> interCode;
     std::vector<BasicBlock> blocks;
     std::vector<std::vector<size_t>> loops;
-    std::vector<ForeEndEdge> mforeEndEdges;
+
+    // 只用于给前端显示
     static IntermediateCode* IC;
+    DAG externalDAG;
+    std::vector<std::string> externalActive;
 
     int findLabel(const std::string& target)
     {
@@ -132,6 +135,17 @@ private:
 
             }
 
+            std::cout << "Block" << i << "'s def: ";
+            for(size_t j = 0; j < def.size(); ++j)
+            {
+                std::cout << def[j] << ' ';
+            }
+            std::cout << std::endl << "Block" << i << "'s use:";
+            for(size_t j = 0; j < use.size(); ++j)
+            {
+                std::cout << use[j] << ' ';
+            }
+            std::cout << std::endl;
         }
     }
 
@@ -185,6 +199,14 @@ private:
             }
         }
 
+        for(size_t i = 0; i < size; ++i)
+        {
+            std::cout << "Block" << i << "'s outActive: ";
+            for(auto&& var : blocks[i].ouActive)
+                std::cout << var << ' ';
+            std::cout << '\n';
+        }
+
     }
 
     int findBlockByCode(size_t begin_)
@@ -234,6 +256,12 @@ private:
             }
         }
 
+        std::cout << "Back Edges: " << std::endl;
+        for(auto&& back : backEdges)
+        {
+            std::cout << back.first << ", " << back.second << std::endl;
+        }
+
         for(size_t i = 0; i < backEdges.size(); ++i)    
         {
             std::vector<size_t> L; 
@@ -273,6 +301,13 @@ private:
             loops.emplace_back(L);
 
             
+        }
+        for(auto&& l : loops)
+        {
+            std::cout << "loop:";
+            for(auto&& i : l)
+                std::cout << i << ' ';
+            std::cout << "\n";
         }
     }
 
@@ -452,7 +487,10 @@ public:
         return os.str();
     }
 
-    static std::tuple<std::vector<ForeEndNode>, std::vector<ForeEndEdge>>
+
+    //以下是与前端显示有关的操作
+
+    static std::tuple<std::vector<ForeEndNode>, std::vector<ForeEndEdge>, std::string>
     initWithCode(const std::string& code)
     {
         std::istringstream is(code);
@@ -469,6 +507,7 @@ public:
 
         std::vector<ForeEndNode> foreNodes;
         std::vector<ForeEndEdge> foreEdges;
+        std::ostringstream optimizedCode;
 
         for(size_t i = 0; i < IC->blocks.size(); ++i)
         {
@@ -490,29 +529,197 @@ public:
             if(IC->blocks[i].nextCode != -1)
             {
                 e.from = i, e.to = IC->findBlockByCode(IC->blocks[i].nextCode);
-                e.id = IC->mforeEndEdges.size();
                 foreEdges.emplace_back(e);
-                IC->mforeEndEdges.emplace_back(e);
                 
             }
             if(IC->blocks[i].jumpCode != -1)
             {
                 e.from = i, e.to = IC->findBlockByCode(IC->blocks[i].jumpCode);
-                e.id = IC->mforeEndEdges.size();
                 foreEdges.emplace_back(e);
-                IC->mforeEndEdges.emplace_back(e);
             }
 
         }
 
-        return std::make_tuple(foreNodes, foreEdges);
+        auto allCode = IC->blockOptimize();
+        for(size_t i = 0; i < allCode.size(); ++i)
+        {
+            optimizedCode << "B" << i << ":\n";
+            for(auto&& code : allCode[i])
+            {
+                optimizedCode << code;
+            }
+        }
+
+        return std::make_tuple(foreNodes, foreEdges, optimizedCode.str());
     }
 
     static IntermediateCode* getInstance()
     {
         return IC;
     }
+
+    static void recordActive(const std::vector<std::string>& active)
+    {
+        IC->externalActive = active;
+    }
+
+    static std::tuple<std::vector<ForeEndNode>, std::vector<ForeEndEdge>>
+    establishDAG(const std::string& code)
+    {
+
+        QuadExp e;
+        std::istringstream is(code);
+        is >> e;
+        auto v = new std::vector<size_t>{};
+        std::vector<size_t> newNodes = IC->externalDAG.readQuad(e);
+
+        std::vector<ForeEndNode> foreNodes;
+        std::vector<ForeEndEdge> foreEdges;
+
+        for(size_t i = 0; i < IC->externalDAG.nodes.size(); ++i)
+        {
+            // 处理前端DAG结点
+            auto&& curNode = IC->externalDAG.nodes[i];
+            ForeEndNode fn;
+            fn.id = i;
+            fn.label = "value: " + curNode->value + "\n";
+            if(!curNode->symList.empty())
+            {
+                fn.label += "symbols: ";
+                for(auto&& sym : curNode->symList)
+                    fn.label += sym + " ";
+            }
+            if(curNode->isKilled)
+                fn.label += "\nUNRELIABLE";
+
+            if(contain(newNodes, i))
+                fn.group = NEW;
+            else if(curNode->isKilled)
+                fn.group = KILLED;
+            else if(contain(IC->externalActive, curNode->value) || !intersection(IC->externalActive, curNode->symList).empty())
+                fn.group = ACTIVE;
+            else if(curNode->isLeaf())
+                fn.group = LEAF;
+            else
+                fn.group = NORMAL;
+
+            foreNodes.emplace_back(fn);
+
+            // 处理前端DAG边
+            ForeEndEdge fe;
+            if(curNode->left != -1)
+            {
+                fe.from = i, fe.to = curNode->left;
+                foreEdges.emplace_back(fe);
+            }
+            if(curNode->right != -1)
+            {
+                fe.from = i, fe.to = curNode->right;
+                foreEdges.emplace_back(fe);
+            }
+            if(curNode->tri != -1)
+            {
+                fe.from = i, fe.to = curNode->tri;
+                foreEdges.emplace_back(fe);
+            }
+        }
+        return std::make_tuple(foreNodes, foreEdges);
+    }
+
+    static std::tuple<std::vector<ForeEndNode>, std::vector<ForeEndEdge>>
+    simplifyDAG()
+    {
+        bool changed = true;
+
+        //删除不活跃的根结点
+        while(changed)
+        {
+            changed = false;
+            auto&& exDAG = IC->externalDAG;
+            size_t lastSize = exDAG.nodes.size();
+
+            for(auto it = exDAG.nodes.begin(); it != exDAG.nodes.end();)
+            {
+                if(exDAG.isRoot(*it) && !exDAG.isActiveNode(*it, IC->externalActive))
+                    it = exDAG.nodes.erase(it);
+                else
+                    ++it;
+            }
+
+            if(exDAG.nodes.size() != lastSize)
+                changed = true;
+        }
+
+        //清除不活跃的标识符，为标识符为空的结点新增一个 Si 标识符
+        size_t symSerial = 0;
+
+        for(auto&& node : IC->externalDAG.nodes)
+        {
+            if(node->value == "TAR")
+                continue;
+
+            for(auto it = node->symList.begin(); it != node->symList.end();)
+            {
+                if(!contain(IC->externalActive, *it))
+                    it = node->symList.erase(it);
+                else
+                    ++it;
+            }
+
+            if(!node->isLeaf() && node->symList.empty())
+            {
+                node->symList.emplace_back(std::string{"S" + std::to_string(symSerial++)});
+            }
+        }
+
+        std::vector<ForeEndNode> foreNodes;
+        std::vector<ForeEndEdge> foreEdges;
+
+        for(size_t i = 0; i < IC->externalDAG.nodes.size(); ++i)
+        {
+            // 处理前端DAG结点
+            auto&& curNode = IC->externalDAG.nodes[i];
+            ForeEndNode fn;
+            fn.id = i;
+            fn.label = "value: " + curNode->value + "\n";
+            if(!curNode->symList.empty())
+            {
+                fn.label += "symbols: ";
+                for(auto&& sym : curNode->symList)
+                    fn.label += sym + " ";
+            }
+            if(curNode->isKilled)
+                fn.label += "\nUNRELIABLE";
+
+            foreNodes.emplace_back(fn);
+
+            // 处理前端DAG边
+            ForeEndEdge fe;
+            if(curNode->left != -1)
+            {
+                fe.from = i, fe.to = curNode->left;
+                foreEdges.emplace_back(fe);
+            }
+            if(curNode->right != -1)
+            {
+                fe.from = i, fe.to = curNode->right;
+                foreEdges.emplace_back(fe);
+            }
+            if(curNode->tri != -1)
+            {
+                fe.from = i, fe.to = curNode->tri;
+                foreEdges.emplace_back(fe);
+            }
+        }
+        auto res = std::make_tuple(foreNodes, foreEdges);
+
+        IC->externalActive.clear();
+        IC->externalDAG.release();
+
+        return res;
+    }
 };
 
 IntermediateCode* IntermediateCode::IC = new IntermediateCode{};
+
 #endif

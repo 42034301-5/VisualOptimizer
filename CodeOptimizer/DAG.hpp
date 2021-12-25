@@ -143,8 +143,9 @@ private:
     }
 
     //(op, a1, a2, -)
-    void readQuad0(const QuadExp& E)
+    std::vector<size_t> readQuad0(const QuadExp& E)
     {
+        std::vector<size_t> result;
         DAGNode* n1 = nullptr, * n2 = nullptr;
         auto n = findNodeBySymbol(E.a1);
         if(n != nullptr && !n->isKilled)
@@ -166,6 +167,8 @@ private:
                 n2->left = -1, n2->right = -1, n2->tri = -1;
                 n2->value = E.a2;
                 nodes.emplace_back(n2);
+                result.emplace_back(nodes.size() - 1);
+                
             }
 
             int indexn2 = findNode(n2);
@@ -182,13 +185,16 @@ private:
                 n1->value = E.op;
                 n1->addSymbol(E.a1);
                 nodes.emplace_back(n1);
+                result.emplace_back(nodes.size() - 1);
             }
         }
+        return result;
     }
 
     // (op, a1, -, a3)
-    void readQuad1(const QuadExp& E)
+    std::vector<size_t> readQuad1(const QuadExp& E)
     {
+        std::vector<size_t> result;
         DAGNode* n1 =nullptr, * n3 = nullptr;
         auto n = findNodeBySymbol(E.a1);
         if(n != nullptr && !n->isKilled)
@@ -209,6 +215,7 @@ private:
                 n1->value = E.op;
                 n1->addSymbol(E.a1);
                 nodes.emplace_back(n1);
+                result.emplace_back(nodes.size() - 1);
             }
         }
         else    // a3没有作为内部变量出现过，还可能作为外部变量（叶子）出现过
@@ -220,6 +227,7 @@ private:
                 n3->left = -1, n3->right = -1, n3->tri = -1;
                 n3->value = E.a3;
                 nodes.emplace_back(n3);
+                result.emplace_back(nodes.size() - 1);
             }
 
             int indexn3 = findNode(n3);
@@ -235,17 +243,19 @@ private:
                 n1->value = E.op;
                 n1->addSymbol(E.a1);
                 nodes.emplace_back(n1);
+                result.emplace_back(nodes.size() - 1);
             }
-        }       
+        }      
+        return result; 
     }
 
     //(op, a1, a2, a3)
-    void readQuad2(const QuadExp& E)
+    std::vector<size_t> readQuad2(const QuadExp& E)
     {
+        std::vector<size_t> result;
         DAGNode* n1 = nullptr, * n2 = nullptr, * n3 = nullptr;
         bool n2Literal = false, n3Literal = false;
         int indexn2 = -1, indexn3 = -1;
-        
 
         n2 = findNodeByValue(E.a2, -1, -1, -1);
         n3 = findNodeByValue(E.a3, -1, -1, -1);
@@ -282,6 +292,7 @@ private:
                 n->value = std::to_string(val);
                 n->left = -1, n->right = -1, n->tri = -1;
                 nodes.emplace_back(n);
+                result.emplace_back(nodes.size() - 1);
             }
             
             n1 = findNodeByValue("SET", findNode(n), -1, -1);
@@ -300,6 +311,7 @@ private:
                 removeSymbol(E.a1);
                 n1->addSymbol(E.a1);
                 nodes.emplace_back(n1);
+                result.emplace_back(nodes.size() - 1);
             }
         }
         //n2和n3至少一个不是常量叶子（内部变量或外部变量）
@@ -314,6 +326,7 @@ private:
                     n2->left = -1, n2->right = -1, n2->tri = -1;
                     n2->value = E.a2;
                     nodes.emplace_back(n2);
+                    result.emplace_back(nodes.size() - 1);
                 }
             }
 
@@ -326,6 +339,7 @@ private:
                     n3->left = -1, n3->right = -1, n3->tri = -1;
                     n3->value = E.a3;
                     nodes.emplace_back(n3);
+                    result.emplace_back(nodes.size() - 1);
                 }
             }
             
@@ -345,14 +359,16 @@ private:
                 removeSymbol(E.a1);
                 n1->addSymbol(E.a1);
                 nodes.emplace_back(n1);
+                result.emplace_back(nodes.size() - 1);
             }
         }
-
+        return result;
     }
 
     //(TAR, a1, a2, a3)  a1[a2] = a3
-    void readQuad3(const QuadExp& E)
+    std::vector<size_t> readQuad3(const QuadExp& E)
     {
+        std::vector<size_t> result;
         DAGNode* n1 = nullptr, * n2 = nullptr, * n3 = nullptr, * n = nullptr;
         n1 = findNodeByValue(E.a1, -1, -1, -1);
         n2 = findNodeByValue(E.a2, -1, -1, -1);
@@ -367,6 +383,7 @@ private:
                 n1->left = -1, n1->right = -1, n1->tri = -1;
                 n1->value = E.a1;
                 nodes.emplace_back(n1);
+                result.emplace_back(nodes.size() - 1);
             }
         }
 
@@ -379,6 +396,7 @@ private:
                 n2->left = -1, n2->right = -1, n2->tri = -1;
                 n2->value = E.a2;
                 nodes.emplace_back(n2);
+                result.emplace_back(nodes.size() - 1);
             }
         }
 
@@ -391,6 +409,7 @@ private:
                 n3->left = -1, n3->right = -1, n3->tri = -1;
                 n3->value = E.a3;
                 nodes.emplace_back(n3);
+                result.emplace_back(nodes.size() - 1);
             }
         }
 
@@ -398,7 +417,10 @@ private:
         n->left = findNode(n1), n->right = findNode(n2), n->tri = findNode(n3);
         n->value = E.op;
         nodes.emplace_back(n);
+        result.emplace_back(nodes.size() - 1);
         killNodesDependingOn(n1);
+
+        return result;
     }
 
     bool isRoot(DAGNode* n) const
@@ -480,24 +502,20 @@ private:
 
 public:
 
-    void readQuad(const QuadExp& E)
+    std::vector<size_t> readQuad(const QuadExp& E)
     {
         switch(const int T = E.type())
         {
             case 0:
-                readQuad0(E);
-                break;
+                return readQuad0(E);
             case 1:
-                readQuad1(E);
-                break;
+                return readQuad1(E);
             case 2:
-                readQuad2(E);
-                break;
+                return readQuad2(E);
             case 3:
-                readQuad3(E);
-                break;
+                return readQuad3(E);
             default:
-                break;
+                return std::vector<size_t>{};
         }
     }
 
@@ -643,6 +661,9 @@ public:
         }
         nodes.clear();
     }
+
+    friend class IntermediateCode;
+
 };
 
 
