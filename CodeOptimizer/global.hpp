@@ -103,6 +103,7 @@ struct ForeEndNode
 {
     size_t id{};
     std::string label;
+
 };
 
 struct ForeEndEdge
