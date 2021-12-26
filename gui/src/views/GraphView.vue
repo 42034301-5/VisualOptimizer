@@ -131,7 +131,7 @@ export default {
                 //     showButton: true //显示配置器底部的生成选项按钮。
                 // },
                 edges: {//关系线控制
-                    // width: 5,//关系线宽度
+                     width: 5,//关系线宽度
                     // title: undefined,
                     // value: 20,
                     // widthConstraint: false,
@@ -142,7 +142,7 @@ export default {
                             type: 'arrow',//箭头的类型：circle,bar,arrows
                         },
                     },
-                    // // shadow: true,//连接线阴影配置
+                    shadow: true,//连接线阴影配置
                     // shadow: {
                     //     enabled: false,
                     //     color: 'rgba(0,0,0,0.5)',
@@ -196,7 +196,7 @@ export default {
                     //     }
                     //},
                     // selfReferenceSize: 30, //参考尺寸
-                    length: 800,//关系线线长设置，数字较大最好以100位单位修改可看出差异
+                    length: 1200,//关系线线长设置，数字较大最好以100位单位修改可看出差异
                     // dashes: false,//关系线虚线，false不是，true是
                     // arrowStrikethrough: true,//关系线与节点处无缝隙
                     // color: {
@@ -212,12 +212,12 @@ export default {
                     // },
                     // selectionWidth: 1
                 },
-                // nodes: {//节点配置
+                nodes: {//节点配置
                 //     shape: 'circle', //形状
                 //     widthConstraint: 250,
                 //     margin: 10,
-                //     borderWidth: 1,//节点边框的宽度,单位为px
-                //     borderWidthSelected: 2, //节点被选中时边框的宽度，单位为px
+                     borderWidth: 3,//节点边框的宽度,单位为px
+                     borderWidthSelected: 8, //节点被选中时边框的宽度，单位为px
                 //     color: {
                 //         border: '#2B7CE9',//节点边框颜色
                 //         background: '#97C2FC',//节点背景颜色
@@ -230,15 +230,15 @@ export default {
                 //             background: '#D2E5FF'
                 //         }
                 //     },
-                //     font: {//字体配置
-                //         color: '#343434',//颜色
-                //         size: 14, // 大小，单位px
-                //         face: 'arial',//字体
+                     font: {//字体配置
+                         color: '#343434',//颜色
+                         size: 20, // 大小，单位px
+                         face: 'Verdana',//字体
                 //         background: 'none',//背景
-                //         align: 'center',//位置left right center
-                //     },
-                //     shadow: true
-                // },
+                         align: 'left',//位置left right center
+                     },
+                     shadow: true
+                 },
                 // groups: {},
                 // layout: {
                 //     randomSeed: 1,//配置每次生成的节点位置都一样，参数为数字1、2等
