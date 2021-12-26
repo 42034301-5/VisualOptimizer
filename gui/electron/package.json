@@ -6,7 +6,7 @@
     "scripts": {
         "copy": "node copy.js",
         "start": " npm run copy && electron .",
-        "package": "npm run copy && electron-packager ./ VisualCodeOptimzer --out ./release --overwrite --icon=./../public/favicon.ico"
+        "package": "npm run copy && electron-packager ./ VisualCodeOptimzer --out ./release --overwrite --icon=./vue/favicon.ico"
     },
     "author": "",
     "license": "ISC",

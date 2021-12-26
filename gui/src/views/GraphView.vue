@@ -196,7 +196,7 @@ export default {
                     //     }
                     //},
                     // selfReferenceSize: 30, //参考尺寸
-                    length: 1200,//关系线线长设置，数字较大最好以100位单位修改可看出差异
+                    length: 1000,//关系线线长设置，数字较大最好以100位单位修改可看出差异
                     // dashes: false,//关系线虚线，false不是，true是
                     // arrowStrikethrough: true,//关系线与节点处无缝隙
                     // color: {
@@ -213,9 +213,13 @@ export default {
                     // selectionWidth: 1
                 },
                 nodes: {//节点配置
-                //     shape: 'circle', //形状
+                     shape: 'box', //形状
+                     shapeProperties:{
+                         borderRadius:30
+                     },
+
                 //     widthConstraint: 250,
-                //     margin: 10,
+                     margin: 20,
                      borderWidth: 3,//节点边框的宽度,单位为px
                      borderWidthSelected: 8, //节点被选中时边框的宽度，单位为px
                 //     color: {

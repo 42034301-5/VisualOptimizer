@@ -176,7 +176,7 @@ export default {
                     // selectionWidth: 1
                 },
                 nodes: {//节点配置
-                //     shape: 'circle', //形状
+                //     shape: 'box', //形状
                 //     widthConstraint: 250,
                 //     margin: 10,
                        borderWidth: 3,//节点边框的宽度,单位为px
