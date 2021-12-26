@@ -721,17 +721,20 @@ public:
             if(node->value == "TAR")
                 continue;
 
-            for(auto it = node->symList.begin(); it != node->symList.end();)
+            if(node->value[0] != 'J')
             {
-                if(!contain(IC->externalActive, *it))
-                    it = node->symList.erase(it);
-                else
-                    ++it;
-            }
+                for(auto it = node->symList.begin(); it != node->symList.end();)
+                {
+                    if(!contain(IC->externalActive, *it))
+                        it = node->symList.erase(it);
+                    else
+                        ++it;
+                }
 
-            if(!node->isLeaf() && node->symList.empty())
-            {
-                node->symList.emplace_back(std::string{"S" + std::to_string(symSerial++)});
+                if(!node->isLeaf() && node->symList.empty())
+                {
+                    node->symList.emplace_back(std::string{"S" + std::to_string(symSerial++)});
+                }
             }
         }
 
