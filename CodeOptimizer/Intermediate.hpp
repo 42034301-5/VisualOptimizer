@@ -697,7 +697,6 @@ public:
         {
             changed = false;
             auto&& exDAG = IC->externalDAG;
-            size_t lastSize = exDAG.nodes.size();
 
             for(auto it = exDAG.nodes.begin(); it != exDAG.nodes.end(); ++it)
             {
@@ -717,6 +716,8 @@ public:
 
         for(auto&& node : IC->externalDAG.nodes)
         {
+            if(node == nullptr)
+                continue;
             if(node->value == "TAR")
                 continue;
 

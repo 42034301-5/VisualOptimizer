@@ -563,7 +563,6 @@ public:
         while(changed)
         {
             changed = false;
-            size_t lastSize = nodes.size();
 
             for(auto it = nodes.begin(); it != nodes.end(); ++it)
             {
