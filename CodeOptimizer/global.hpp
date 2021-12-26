@@ -9,6 +9,7 @@
 #include <set>
 #include <stack>
 #include <tuple>
+#include <memory>
 
 
 
@@ -102,6 +103,24 @@ T difference(const T& A, const T& B)
     );
 
     return result;
+}
+
+template<typename T>
+bool startWith(const T& A, const T& B)
+{
+    if(B.size() > A.size())
+        return false;
+
+    auto it1 = A.begin();
+    auto it2 = B.begin();
+    while(it2 != B.end())
+    {
+        if(*it1 != *it2)
+            return false;
+        ++it1;
+        ++it2;
+    }
+    return true;
 }
 
 enum

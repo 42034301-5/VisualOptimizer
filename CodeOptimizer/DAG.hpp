@@ -28,9 +28,9 @@ struct DAGNode
     std::string value;
     bool isKilled = false;
 
-    static DAGNode* createNode()
+    static std::shared_ptr<DAGNode> createNode()
     {
-        auto newNode = new DAGNode();
+        auto newNode = std::make_shared<DAGNode>();
         return newNode;
     }
 
@@ -62,9 +62,9 @@ struct DAGNode
 class DAG
 {
 private:
-    std::vector<DAGNode*> nodes;
+    std::vector<std::shared_ptr<DAGNode>> nodes;
 
-    int findNode(DAGNode* target) const
+    int findNode(std::shared_ptr<DAGNode> target) const
     {
         for(size_t i = 0; i < nodes.size(); ++i)
         {
@@ -74,10 +74,12 @@ private:
         return -1;
     }
 
-    DAGNode* findNodeBySymbol(const std::string& target) const
+    std::shared_ptr<DAGNode> findNodeBySymbol(const std::string& target) const
     {
         for(auto&& node : nodes)
         {
+            if(node == nullptr)
+                continue;
             for(auto&& symbol : node->symList)
             {
                 if(symbol == target)
@@ -87,10 +89,12 @@ private:
         return nullptr;
     }
 
-    DAGNode* findNodeByValue(const std::string& target, int l, int r, int t) const
+    std::shared_ptr<DAGNode> findNodeByValue(const std::string& target, int l, int r, int t) const
     {
         for(auto&& node : nodes)
         {
+            if(node == nullptr)
+                continue;
             if(node->value == target && node->left == l && node->right == r && node->tri == t)
                 return node;
         }
@@ -128,11 +132,12 @@ private:
     {
         for(auto&& node : nodes)
         {
-            node->removeSymbol(target);
+            if(node != nullptr)
+                node->removeSymbol(target);
         }
     }
 
-    void killNodesDependingOn(DAGNode* n)
+    void killNodesDependingOn(std::shared_ptr<DAGNode> n)
     {
         int index = findNode(n);
         for(auto&& node : nodes)
@@ -146,7 +151,7 @@ private:
     std::vector<size_t> readQuad0(const QuadExp& E)
     {
         std::vector<size_t> result;
-        DAGNode* n1 = nullptr, * n2 = nullptr;
+        std::shared_ptr<DAGNode> n1 = nullptr, n2 = nullptr;
         auto n = findNodeBySymbol(E.a1);
         if(n != nullptr && !n->isKilled)
         {
@@ -195,7 +200,7 @@ private:
     std::vector<size_t> readQuad1(const QuadExp& E)
     {
         std::vector<size_t> result;
-        DAGNode* n1 =nullptr, * n3 = nullptr;
+        std::shared_ptr<DAGNode> n1 =nullptr, n3 = nullptr;
         auto n = findNodeBySymbol(E.a1);
         if(n != nullptr && !n->isKilled)
         {
@@ -253,7 +258,7 @@ private:
     std::vector<size_t> readQuad2(const QuadExp& E)
     {
         std::vector<size_t> result;
-        DAGNode* n1 = nullptr, * n2 = nullptr, * n3 = nullptr;
+        std::shared_ptr<DAGNode> n1 = nullptr, n2 = nullptr, n3 = nullptr;
         bool n2Literal = false, n3Literal = false;
         int indexn2 = -1, indexn3 = -1;
 
@@ -285,7 +290,7 @@ private:
             //已经存在值为val2 op val3的常量叶子，则a1 = val2 op val3
             //否则创建一个val2 op val3的常量叶子
 
-            DAGNode* n = findNodeByValue(std::to_string(val), -1, -1, -1);
+            std::shared_ptr<DAGNode> n = findNodeByValue(std::to_string(val), -1, -1, -1);
             if(n == nullptr)
             {
                 n = DAGNode::createNode();
@@ -369,7 +374,7 @@ private:
     std::vector<size_t> readQuad3(const QuadExp& E)
     {
         std::vector<size_t> result;
-        DAGNode* n1 = nullptr, * n2 = nullptr, * n3 = nullptr, * n = nullptr;
+        std::shared_ptr<DAGNode> n1 = nullptr, n2 = nullptr, n3 = nullptr, n = nullptr;
         n1 = findNodeByValue(E.a1, -1, -1, -1);
         n2 = findNodeByValue(E.a2, -1, -1, -1);
         n3 = findNodeByValue(E.a3, -1, -1, -1);
@@ -423,10 +428,14 @@ private:
         return result;
     }
 
-    bool isRoot(DAGNode* n) const
+    bool isRoot(std::shared_ptr<DAGNode> n) const
     {
+        if(n == nullptr)
+            return false;
         for(auto&& node : nodes)
         {
+            if(node == nullptr)
+                continue;
             if(
                 (node->left != -1 && nodes[node->left]  == n)   ||
                 (node->right != -1 && nodes[node->right]  == n) ||
@@ -439,8 +448,11 @@ private:
         return true;
     }
 
-    bool isActiveNode(DAGNode* n, const std::vector<std::string>& outActive) const
+    bool isActiveNode(std::shared_ptr<DAGNode> n, const std::vector<std::string>& outActive) const
     {
+        if(n == nullptr)
+            return false;
+
         if(n->isLeaf())
             return false;
 
@@ -456,9 +468,12 @@ private:
         return false;
     }
 
-    std::vector<QuadExp> genCode(DAGNode* n) const
+    std::vector<QuadExp> genCode(std::shared_ptr<DAGNode> n) const
     {
         std::vector<QuadExp> result;
+        if(n == nullptr)
+            return result;
+
         if(n->value == "TAR")
         {
             QuadExp e;
@@ -524,6 +539,8 @@ public:
         std::ostringstream os;
         for(size_t i = 0; i < nodes.size(); ++i)
         {
+            if(nodes[i] == nullptr)
+                continue;
             os << "Node: n" << i << "\t\t";
             os << "Mark: " << nodes[i]->value << "\t\t";
             os << "Leaf:" << (nodes[i]->isLeaf() ? "Y" : "N") << "\t\t";
@@ -548,16 +565,15 @@ public:
             changed = false;
             size_t lastSize = nodes.size();
 
-            for(auto it = nodes.begin(); it != nodes.end();)
+            for(auto it = nodes.begin(); it != nodes.end(); ++it)
             {
                 if(isRoot(*it) && !isActiveNode(*it, outActive))
-                    it = nodes.erase(it);
-                else
-                    ++it;
+                {
+                    *it = nullptr;
+                    changed = true;
+                }
             }
 
-            if(nodes.size() != lastSize)
-                changed = true;
         }
 
         //清除不活跃的标识符，为标识符为空的结点新增一个 Si 标识符
@@ -565,10 +581,12 @@ public:
 
         for(auto&& node : nodes)
         {
+            if(node == nullptr)
+                continue;
             if(node->value == "TAR")
                 continue;
 
-            for(auto it = node->symList.begin(); it != node->symList.end();)
+            for(auto it = node->symList.begin(); it < node->symList.end();)
             {
                 if(!contain(outActive, *it))
                     it = node->symList.erase(it);
@@ -583,10 +601,12 @@ public:
         }
 
         //DFS自下而上生成代码
-        std::vector<DAGNode*> allRoots = [=]()->std::vector<DAGNode*>{
-            std::vector<DAGNode*> roots;
+        std::vector<std::shared_ptr<DAGNode>> allRoots = [=]()->std::vector<std::shared_ptr<DAGNode>>{
+            std::vector<std::shared_ptr<DAGNode>> roots;
             for(auto&& node : nodes)
             {
+                if(node == nullptr)
+                    continue;
                 if(isRoot(node))
                     roots.emplace_back(node);
             }
@@ -595,18 +615,20 @@ public:
         std::vector<bool> visited(nodes.size(), false);
         for(size_t i = 0; i < visited.size(); ++i)
         {
+            if(nodes[i] == nullptr)
+                continue;
             if(nodes[i]->isLeaf())
                 visited[i] = true;
         }
 
         for(auto&& root : allRoots)
         {
-            std::stack<DAGNode*> stk;
+            std::stack<std::shared_ptr<DAGNode>> stk;
             stk.push(root);
 
             while(!stk.empty())
             {
-                DAGNode* cur = stk.top();
+                std::shared_ptr<DAGNode> cur = stk.top();
                 stk.pop();
                 if(visited[findNode(cur)])
                     continue;
@@ -655,7 +677,6 @@ public:
         {
             if(node != nullptr)
             {
-                delete node;
                 node = nullptr;
             }
         }

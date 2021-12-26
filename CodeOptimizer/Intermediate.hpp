@@ -60,6 +60,13 @@ private:
         return -1;
     }
     
+    bool isBackEdge(size_t from, size_t to)
+    {
+        if(contain(blocks[from].dominatorList, to))
+            return true;
+        return false;
+    }
+
     void genDominanceSets()
     {
         bool changed = true;
@@ -197,6 +204,11 @@ private:
             {
                 std::vector<std::string> label = {interCode[blocks[i].end].a1};
                 blocks[i].ouActive = setunion(blocks[i].ouActive, label);
+                if(interCode[blocks[i].end].op != "JMP")
+                {
+                    std::vector<std::string> jumpCondition = {interCode[blocks[i].end].a1};
+                    blocks[i].ouActive = setunion(blocks[i].ouActive, jumpCondition);
+                }
             }
         }
 
@@ -328,6 +340,22 @@ private:
                 return true;
             }
             
+        }
+        return false;
+    }
+
+    bool isBlockJumperTarget(const std::string& labelOfBlk)
+    {
+        for(size_t i = 0; i < interCode.size(); ++i)
+        {
+            auto&& E = interCode[i];
+            if(
+                E.op[0] == 'J' &&
+                E.a1 == labelOfBlk
+            )
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -494,6 +522,11 @@ public:
     static std::tuple<std::vector<ForeEndNode>, std::vector<ForeEndEdge>, std::string>
     initWithCode(const std::string& code)
     {
+        for(auto&& b : IC->blocks)
+        {
+            b.dag.release();
+        }
+
         IC->blocks.clear();
         IC->interCode.clear();
         IC->loops.clear();
@@ -527,7 +560,8 @@ public:
             os << "Active:";
             for(auto&& activeVar : IC->blocks[i].ouActive)
             {
-                os << " " << activeVar;
+                if(!IC->isBlockJumperTarget(activeVar))
+                    os << " " << activeVar;
             }
 
             n.label = os.str();
@@ -540,6 +574,8 @@ public:
             {
                 e.id = edgeSerial++;
                 e.from = i, e.to = IC->findBlockByCode(IC->blocks[i].nextCode);
+                if(IC->isBackEdge(e.from, e.to))
+                    e.group = 1;
                 foreEdges.emplace_back(e);
                 
             }
@@ -547,6 +583,8 @@ public:
             {
                 e.id = edgeSerial++;
                 e.from = i, e.to = IC->findBlockByCode(IC->blocks[i].jumpCode);
+                if(IC->isBackEdge(e.from, e.to))
+                    e.group = 1;
                 foreEdges.emplace_back(e);
             }
 
@@ -578,12 +616,16 @@ public:
     static std::tuple<std::vector<ForeEndNode>, std::vector<ForeEndEdge>>
     establishDAG(const std::string& code)
     {
+        std::vector<size_t> newNodes;
 
-        QuadExp e;
-        std::istringstream is(code);
-        is >> e;
-        auto v = new std::vector<size_t>{};
-        std::vector<size_t> newNodes = IC->externalDAG.readQuad(e);
+        if(!startWith(code, std::string("JMP")))
+        {
+            QuadExp e;
+            std::istringstream is(code);
+            is >> e;
+            auto v = new std::vector<size_t>{};
+            newNodes = IC->externalDAG.readQuad(e);
+        }
 
         std::vector<ForeEndNode> foreNodes;
         std::vector<ForeEndEdge> foreEdges;
@@ -592,6 +634,9 @@ public:
         {
             // 处理前端DAG结点
             auto&& curNode = IC->externalDAG.nodes[i];
+            if(curNode == nullptr)
+                continue;
+
             ForeEndNode fn;
             fn.id = i;
             fn.label = "value: " + curNode->value + "\n";
@@ -654,16 +699,17 @@ public:
             auto&& exDAG = IC->externalDAG;
             size_t lastSize = exDAG.nodes.size();
 
-            for(auto it = exDAG.nodes.begin(); it != exDAG.nodes.end();)
+            for(auto it = exDAG.nodes.begin(); it != exDAG.nodes.end(); ++it)
             {
+                if(*it == nullptr)
+                    continue;
                 if(exDAG.isRoot(*it) && !exDAG.isActiveNode(*it, IC->externalActive))
-                    it = exDAG.nodes.erase(it);
-                else
-                    ++it;
+                {
+                    *it = nullptr;
+                    changed = true;
+                }
             }
 
-            if(exDAG.nodes.size() != lastSize)
-                changed = true;
         }
 
         //清除不活跃的标识符，为标识符为空的结点新增一个 Si 标识符
@@ -695,6 +741,9 @@ public:
         {
             // 处理前端DAG结点
             auto&& curNode = IC->externalDAG.nodes[i];
+            if(curNode == nullptr)
+                continue;
+
             ForeEndNode fn;
             fn.id = i;
             fn.label = "value: " + curNode->value + "\n";
