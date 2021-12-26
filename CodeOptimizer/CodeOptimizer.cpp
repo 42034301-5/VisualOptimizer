@@ -157,6 +157,8 @@ json::value handleInitWithCode(json::value codes)
     ret.operator[](U("edges")) = edges;
     ret.operator[](U("value")) = json::value::value(StringToWString(value));
 
+    //cout << WStringToString(ret.to_string()) << std::endl;
+
     return ret;
 }
 
@@ -192,6 +194,10 @@ json::value handleReadLine(json::value jsonCode)
     }
     ret.operator[](U("nodes")) = nodes;
     ret.operator[](U("edges")) = edges;
+
+    string res = WStringToString(ret.to_string());
+
+    //cout << res<< std::endl;
 
     return ret;
 }
@@ -238,6 +244,8 @@ json::value handleSimplify()
     }
     ret.operator[](U("nodes")) = nodes;
     ret.operator[](U("edges")) = edges;
+
+    //cout << WStringToString(ret.to_string()) << std::endl;
 
     return ret;
 }

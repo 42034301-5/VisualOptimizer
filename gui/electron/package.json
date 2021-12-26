@@ -1,0 +1,20 @@
+{
+    "name": "electron",
+    "version": "1.0.0",
+    "description": "VisualCodeOptimizer",
+    "main": "main.js",
+    "scripts": {
+        "copy": "node copy.js",
+        "start": " npm run copy && electron .",
+        "package": "npm run copy && electron-packager ./ VisualCodeOptimzer --out ./release --overwrite --icon=./../public/favicon.ico"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^16.0.5",
+        "electron-packager": "^15.4.0"
+    },
+    "dependencies": {
+        "forever": "^4.0.1"
+    }
+}

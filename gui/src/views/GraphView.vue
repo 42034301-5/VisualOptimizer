@@ -1,38 +1,50 @@
 <template>
-  <div id="main">
-      <el-row :gutter="20">
-            <el-col :span="12">
-                <el-card class="box-card">
+  <div id="main" style="margin-left:5%;margin-right:5%;margin-top:4%;margin-bottom:4%">
+      <el-row>
+          <el-col :span="24">
+              <el-card class="header-card">
                     <el-button-group>
                         <el-button type="primary" @click="fetchCodeGraph" round>加载程序流图</el-button>
                     </el-button-group>
                 </el-card>
-
-                <el-card class="box-card">
+          </el-col>
+      </el-row>
+      <el-row :gutter="5" style="margin-top:5px">
+            <el-col :span="12">
+                <el-card class="box-card" :body-style="{ padding: '0px' }">
                     <div slot="header" class="clearfix">
                         <span>程序流图</span>
                     </div>
-                    <network style="height:800px" ref="network" 
+                    <network class="in-card"  v-if="hasGraph" ref="network" 
                     :nodes="nodes" :edges="edges" :options="options"
                     :events="['click', 'changed']"
                     @click="clickCodeBlock"></network>
+                    <el-empty class="in-card" v-else description="请输入代码并点击上方按钮以生成程序流图"></el-empty>
                 </el-card>
             </el-col>
             <el-col :span="12">
-                <el-card class="box-card">
-                    <div slot="header" class="clearfix">
-                        <span>代码编辑器</span>
-                    </div>
-                    <div id="main">
-                        <mavon-editor style="height:700px" v-model="value"></mavon-editor>
-                    </div>
-                </el-card>
+                <el-row :gutter="5">
+                    <el-col :span="12">
+                        <el-card class="box-card" :body-style="{ padding: '0px' }">
+                            <div slot="header" class="clearfix">
+                                <span>代码编辑器</span>
+                            </div>
+                            <mavon-editor class="in-card" v-model="value" :toolbars="toolbars" :subfield="false" defaultOpen="edit"></mavon-editor>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-card class="box-card" :body-style="{ padding: '0px' }">
+                            <div slot="header" class="clearfix">
+                                <span>优化后代码</span>
+                            </div>
+                            <mavon-editor class="in-card" v-model="after" :toolbars="toolbars" :subfield="false" defaultOpen="preview"></mavon-editor>
+                        </el-card>
+                    </el-col>
+
+                </el-row>
+
             </el-col>
         </el-row>
-
-    
-    
-
   </div>
 </template>
 
@@ -50,25 +62,36 @@ var testCode="\
 SUB     I   M   1\n\
 SET     J   N   -\n\
 MUL     T1  4   N\n\
+ADD     T16 J   N\n\
 FAR     V   A   T1\n\
+MUL     T17 T16 I\n\
+SET     T18 T17 -\n\
 ADD     I   I   1\n\
 MUL     T2  4   I\n\
+MUL     T19 T2 I\n\
+SET     T20 5   -\n\
 FAR     T3  A   T2\n\
-JLT     (5)  T3  V\n\
+JLT     (8)  T3  V\n\
+ADD     T21 I   1\n\
+ADD     T22 I   2\n\
 SUB     J   J   1\n\
 MUL     T4  4   J\n\
+ADD     T23 I   3\n\
+ADD     T24 I   4\n\
 FAR     T5  A   T4\n\
-JGT     (9)  T5  V\n\
-JGE     (23)  I   J\n\
+JGT     (16)  T5  V\n\
+JGE     (34)  I   J\n\
 MUL     T6  4   I\n\
 FAR     X   A   T6\n\
 MUL     T7  4   I\n\
 MUL     T8  4   J\n\
+MUL     T22 5   T8\n\
+MUL     T13 2   T7\n\
 FAR     T9  A   T8\n\
 TAR     A   T7  T9\n\
 MUL     T10 4   J\n\
 TAR     A   T10 X\n\
-JMP     (5)  -   -\n\
+JMP     (8)  -   -\n\
 MUL     T11 4   I\n\
 FAR     X   A   T11\n\
 MUL     T12 4   I\n\
@@ -173,7 +196,7 @@ export default {
                     //     }
                     //},
                     // selfReferenceSize: 30, //参考尺寸
-                    length: 600,//关系线线长设置，数字较大最好以100位单位修改可看出差异
+                    length: 800,//关系线线长设置，数字较大最好以100位单位修改可看出差异
                     // dashes: false,//关系线虚线，false不是，true是
                     // arrowStrikethrough: true,//关系线与节点处无缝隙
                     // color: {
@@ -246,42 +269,43 @@ export default {
                 //     },
                 // }
             },
-            value:"\n"+testCode+"\n",
+            value:testCode,
             toolbars: {
-                bold: true, // 粗体
-                italic: true, // 斜体
-                header: true, // 标题
-                underline: true, // 下划线
-                strikethrough: true, // 中划线
-                mark: true, // 标记
-                superscript: true, // 上角标
-                subscript: true, // 下角标
-                quote: true, // 引用
-                ol: true, // 有序列表
-                ul: true, // 无序列表
-                link: true, // 链接
-                imagelink: true, // 图片链接
-                code: true, // code
-                table: true, // 表格
+                bold: false, // 粗体
+                italic: false, // 斜体
+                header: false, // 标题
+                underline: false, // 下划线
+                strikethrough: false, // 中划线
+                mark: false, // 标记
+                superscript: false, // 上角标
+                subscript: false, // 下角标
+                quote: false, // 引用
+                ol: false, // 有序列表
+                ul: false, // 无序列表
+                link: false, // 链接
+                imagelink: false, // 图片链接
+                code: false, // code
+                table: false, // 表格
                 fullscreen: true, // 全屏编辑
                 readmodel: true, // 沉浸式阅读
-                htmlcode: true, // 展示html源码
-                help: true, // 帮助
+                htmlcode: false, // 展示html源码
+                help: false, // 帮助
                 /* 1.3.5 */
                 undo: true, // 上一步
                 redo: true, // 下一步
                 trash: true, // 清空
-                save: true, // 保存（触发events中的save事件）
+                save: false, // 保存（触发events中的save事件）
                 /* 1.4.2 */
-                navigation: true, // 导航目录
+                navigation: false, // 导航目录
                 /* 2.1.8 */
-                alignleft: true, // 左对齐
-                aligncenter: true, // 居中
-                alignright: true, // 右对齐
+                alignleft: false, // 左对齐
+                aligncenter: false, // 居中
+                alignright: false, // 右对齐
                 /* 2.2.1 */
-                subfield: true, // 单双栏模式
-                preview: true, // 预览
-            }
+                subfield: false, // 单双栏模式
+                preview: false, // 预览
+            },
+            hasGraph:false
         }
     },
     created:function(){
@@ -290,11 +314,13 @@ export default {
     methods:{
         fetchCodeGraph()
         {
+            this.hasGraph=true;
+
             InitWithCode(this.value).then(response=>{
 
                 this.nodes=response.data.nodes;
                 this.edges=response.data.edges;
-                console.log(response);
+                this.after="```sql\n"+response.data.value+"\n```";
 
             }).catch(error=>{
                 console.log(error);
@@ -321,5 +347,15 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.el-card{
+    height:640px
+}
+.header-card{
+    height:auto
+}
+.in-card{
+    height: 580px;
+}
+
 
 </style>

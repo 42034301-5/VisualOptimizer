@@ -1,8 +1,7 @@
 <template>
-  <div id="main">
-    <el-row :gutter="20">
-      <el-col :span="12">
-        <el-card class="box-card">
+  <div id="main" style="margin-left:5%;margin-right:5%;margin-top:4%;margin-bottom:4%">
+    <el-row>
+        <el-card class="header-card">
           <el-button-group>
             <el-button type="primary" @click="clickReturn" round>
                 返回程序流图
@@ -10,44 +9,44 @@
             <el-button type="primary" @click="readLine" round>
                 {{ReadNextButton}}
             </el-button>
-            <el-button type="primary" @click="simplify" round>
+            <el-button v-if="isActive" type="primary" @click="simplify" round>
                 删除不活跃变量
             </el-button>
           </el-button-group>
         </el-card>
-
-        <el-card class="box-card">
+    </el-row>
+    <el-row :gutter="5" style="margin-top:5px">
+      <el-col :span="12">
+        <el-card class="box-card" :body-style="{ padding: '0px' }">
           <div slot="header" class="clearfix">
-            <span>基本块代码</span>
+            <span>基本块变量DAG</span>
           </div>
-          <network
-            style="height: 500px"
+          <network v-if="hasGraph" class="in-card"
             ref="network"
-            :nodes="nodes"
-            :edges="edges"
+            :nodes="this.nodes"
+            :edges="this.edges"
             :options="options"
           ></network>
+          <el-empty class="in-card" description="请点击按钮开始优化代码"></el-empty>
         </el-card>
       </el-col>
       <el-col :span="12">
           <el-row>
-            <el-card class="box-card">
+            <el-card class="small-card" :body-style="{ padding: '0px' }">
             <div slot="header" class="clearfix">
                 <span>基本块传出活跃变量</span>
             </div>
-            <div id="main">
-                <mavon-editor style="height:100px" v-model="active" :toolbarsFlag="false" :subfield="false" defaultOpen="preview"></mavon-editor>
-            </div>
+            <mavon-editor class="small-in-card" v-model="active" :toolbarsFlag="false" :subfield="false" defaultOpen="preview"></mavon-editor>
             </el-card>
           </el-row>
 
           <el-row>
-            <el-card class="box-card">
+            <el-card class="large-card" :body-style="{ padding: '0px' }">
             <div slot="header" class="clearfix">
                 <span>基本块代码</span>
             </div>
             <div id="main">
-                <mavon-editor style="height: 400px" v-model="code" :toolbarsFlag="false" :subfield="false" defaultOpen="preview"></mavon-editor>
+                <mavon-editor class="large-in-card" v-model="code" :toolbarsFlag="false" :subfield="false" defaultOpen="preview"></mavon-editor>
             </div>
             </el-card>
           </el-row>
@@ -238,7 +237,9 @@ export default {
             codes:[],
             actives:[],
             active:"",
-            ReadNextButton:"开始读取代码"
+            ReadNextButton:"开始读取代码",
+            hasGraph:false,
+            isActive:false
         }
     },
     created:function(){
@@ -257,8 +258,18 @@ export default {
             }
         }
         this.updateCode();
+        this.simplify();
     },
     methods:{
+        clear()
+        {
+            this.nodes=[];
+            this.edges=[];
+            Simplify().then().catch(error=>{
+                console.log(error);
+            })
+
+        },
         updateCode()
         {
             if(this.currentLine>=0&&this.currentLine<this.codes.length)
@@ -266,25 +277,58 @@ export default {
                 let str="";
                 for(let i=0;i<this.codes.length;i++)
                 {
-                    if(i==this.currentLine)
+                    if(i===0)
                     {
-                        str+="**"+this.codes[i]+"<--下一句将被优化的代码**"+"\n";
+                        if(this.currentLine===i)
+                        {
+                            str+="<font color=#0099ff>"+this.codes[i]+"</font> **<--下一句将被优化的代码**"+"\n";
+                            str+="```sql\n";
+                        }
+                        else
+                        {
+                            str+="```sql\n";
+                            str+=this.codes[i]+"\n";
+                        }
+                    }
+                    else if(i===this.codes.length-1)
+                    {
+                        if(this.currentLine===i)
+                        {
+                            str+="```\n";
+                            str+="<font color=#0099ff>"+this.codes[i]+"</font> **<--下一句将被优化的代码**"+"\n";
+                        }
+                        else
+                        {
+                            str+=this.codes[i]+"\n";
+                            str+="```\n";
+                        }
                     }
                     else
                     {
-                        str+=this.codes[i]+"\n";
+                        if(i===this.currentLine)
+                        {
+                            str+="```\n";
+                            str+="<font color=#0099ff>"+this.codes[i]+"</font> **<--下一句将被优化的代码**"+"\n";
+                            str+="```sql\n";
+                        }
+                        else
+                        {
+                            str+=this.codes[i]+"\n";
+                        }
                     }
+                    
                 }
                 this.code=str;
+                
             }
             else
             {
-                let str="";
+                let str="```sql\n";
                 for(let i=0;i<this.codes.length;i++)
                 {
                     str+=this.codes[i]+"\n";
                 }
-                this.code=str;
+                this.code=str+"\n```";
             }
         },
         recordActive()
@@ -297,8 +341,8 @@ export default {
         },
         simplify()
         {
+            this.isActive=false;
             Simplify().then(response=>{
-                
                 this.nodes=response.data.nodes;
                 this.edges=response.data.edges;
 
@@ -308,6 +352,7 @@ export default {
         },
         readLine()
         {
+            this.hasGraph=true;
             if(this.currentLine>=0&&this.currentLine<this.codes.length)
             {
                 ReadLine(this.codes[this.currentLine]).then(response=>{
@@ -326,20 +371,23 @@ export default {
             }
             else if(this.currentLine<0)
             {
+                this.clear();
                 this.currentLine=0;
                 this.ReadNextButton="读取下一行代码"
+                this.isActive=false;
             }
             else if(this.currentLine>=this.codes.length)
             {
                 this.currentLine=-1;
                 this.ReadNextButton="开始读取代码"
+                this.isActive=true;
             }
             this.updateCode();
         },
         clickReturn:function()
         {
-            this.simplify();
-            this.$router.push({name:"GraphView"});
+            this.clear();
+            this.$router.go(-1);
         }
 
     }
@@ -349,8 +397,31 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .v-note-wrapper {
-    min-height: 100px;
+    min-height: 80px;
+}
+.el-card{
+    height:640px
+}
+.header-card{
+    height:auto
 }
 
+.small-card{
+    height: 140px;
+}
+
+.large-card{
+    height: 498px;
+}
+.in-card{
+    height: 580px;
+}
+.small-in-card{
+    height: 80px;
+
+}
+.large-in-card{
+    height: 438px;
+}
 
 </style>

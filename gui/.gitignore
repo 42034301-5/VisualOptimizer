@@ -1,6 +1,12 @@
 .DS_Store
 node_modules
 /dist
+/electron/cpprestsdk
+/electron/dist
+/electron/vue
+/electron/release
+/electron/node_modules
+
 
 
 # local env files

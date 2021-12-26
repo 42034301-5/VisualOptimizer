@@ -10,7 +10,7 @@ export function InitWithCode(codes) {
 
 export function ReadLine(code){
     return request({
-        url:'/readline',
+        url:'/readLine',
         method: 'post',
         data: {code:code}
     })
