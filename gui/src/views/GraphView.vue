@@ -320,6 +320,10 @@ export default {
 
                 this.nodes=response.data.nodes;
                 this.edges=response.data.edges;
+                this.edges.forEach(edge=>
+                {
+                    edge.color=edge.group===1? "#FF0000":"#1E90FF";
+                });
                 this.after="```sql\n"+response.data.value+"\n```";
 
             }).catch(error=>{
@@ -348,14 +352,12 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .el-card{
-    height:640px
+    height:640px;
 }
 .header-card{
-    height:auto
+    height:auto;
 }
 .in-card{
     height: 580px;
 }
-
-
 </style>

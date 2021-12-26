@@ -258,7 +258,6 @@ export default {
             }
         }
         this.updateCode();
-        this.simplify();
     },
     methods:{
         clear()
@@ -268,7 +267,6 @@ export default {
             Simplify().then().catch(error=>{
                 console.log(error);
             })
-
         },
         updateCode()
         {
@@ -353,7 +351,7 @@ export default {
         readLine()
         {
             this.hasGraph=true;
-            if(this.currentLine>=0&&this.currentLine<this.codes.length)
+            if(this.currentLine>=0&&this.currentLine<this.codes.length)//按下下一句
             {
                 ReadLine(this.codes[this.currentLine]).then(response=>{
                 
@@ -369,14 +367,15 @@ export default {
                     this.ReadNextButton="结束读取代码";
                 }
             }
-            else if(this.currentLine<0)
+            else if(this.currentLine<0)//开始
             {
                 this.clear();
+                this.recordActive();
                 this.currentLine=0;
                 this.ReadNextButton="读取下一行代码"
                 this.isActive=false;
             }
-            else if(this.currentLine>=this.codes.length)
+            else if(this.currentLine>=this.codes.length)//结束
             {
                 this.currentLine=-1;
                 this.ReadNextButton="开始读取代码"
