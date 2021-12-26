@@ -459,6 +459,9 @@ private:
         if(n->value == "TAR")
             return true;
 
+        if(n->value[0] == 'J' && n->value != "JMP")
+            return true;
+
         for(auto&& sym : n->symList)
         {
             if(contain(outActive, sym))
