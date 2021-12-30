@@ -268,6 +268,12 @@ private:
             n2Literal = true;
         if(isLiteral(E.a3) || isLiteralNode(E.a3))
             n3Literal = true;
+
+        if(findNodeBySymbol(E.a2) != nullptr)
+            n2Literal = false;
+        if(findNodeBySymbol(E.a3) != nullptr)
+            n3Literal = false;
+
         //n2和n3均为值是常量的叶子结点，则直接计算n1
         if(n2Literal && n3Literal)
         {
